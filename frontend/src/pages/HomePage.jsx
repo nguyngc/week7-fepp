@@ -1,9 +1,22 @@
-import JobListings from "../components/JobListings";
+import { useState, useEffect } from "react";
+import ProductListings from "../components/ProductListings";
 
 const Home = () => {
+  const [products, setProducts] = useState([]);
+  useEffect(() => {
+    const fetchData = async () => {
+      const res = await fetch("/api/products");
+      const data = await res.json();
+      console.log(data);
+      setProducts(data);
+    }
+
+    fetchData();
+  }, []);
+
   return (
     <div className="home">
-      <JobListings  />
+      <ProductListings products={products} />
     </div>
   );
 };

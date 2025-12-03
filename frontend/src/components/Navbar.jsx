@@ -11,7 +11,7 @@ const Navbar = ({ isAuthenticated, setIsAuthenticated }) => {
 
   return (
     <nav className="navbar">
-      <h1>Job Search</h1>
+      <h1>Product Search</h1>
       <div className="links">
         <a href="/">Home</a>
         {!isAuthenticated && (
@@ -22,7 +22,7 @@ const Navbar = ({ isAuthenticated, setIsAuthenticated }) => {
         )}
         {isAuthenticated && (
           <>
-            <a href="/add-job">Add Job</a>
+            <a href="/add-product">Add Product</a>
             <a>
               Welcome
             </a>
