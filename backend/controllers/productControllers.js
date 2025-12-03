@@ -62,11 +62,35 @@ const deleteProduct = async (req, res) => {
     res.status(500).json({ message: "Failed to delete product" });
   }
 };
+// PUT /products/:productId
+const updateProduct = async (req, res) => {
+  const { productId } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(productId)) {
+    return res.status(400).json({ message: "Invalid product ID" });
+  }
+
+  try {
+    const updatedProduct = await Product.findOneAndUpdate(
+      { _id: productId },
+      { ...req.body },
+      { new: true }
+    );
+    if (updatedProduct) {
+      res.status(200).json(updatedProduct);
+    } else {
+      res.status(404).json({ message: "Product not found" });
+    }
+  } catch (error) {
+    res.status(500).json({ message: "Failed to update product" });
+  }
+};
 
 
 module.exports = {
   getAllProducts,
   createProduct,
   getProductById,
-  deleteProduct
+  deleteProduct,
+  updateProduct
 };
