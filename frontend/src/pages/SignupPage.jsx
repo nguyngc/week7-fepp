@@ -2,7 +2,7 @@ import useField from "../hooks/useField";
 import useSignup from "../hooks/useSignup";
 import { useNavigate } from "react-router-dom";
 
-const Signup = ({ setIsAuthenticated }) => {
+const Signup = ({ setIsAuthenticated, setIsRole }) => {
   const navigate = useNavigate();
   const name = useField("text");
   const email = useField("email");
@@ -27,12 +27,13 @@ const Signup = ({ setIsAuthenticated }) => {
       // gender: gender.value,
       // date_of_birth: dob.value,
       // membership_status: membership.value,
-      role: role.value,
+      role: role.value || "Admin",
       address: address.value
     });
     if (!error) {
       console.log("success");
       setIsAuthenticated(true);
+      setIsRole(role.value=== "Admin" || role.value==="Seller");
       navigate("/");
     }
   };
@@ -56,7 +57,8 @@ const Signup = ({ setIsAuthenticated }) => {
         <label>Membership Status:</label>
         <input {...membership} /> */}
         <label>Role:</label>
-        <select {...role}>
+        <select {...role} required>
+          <option value="">select option</option>
           <option value="Admin">Admin</option>
           <option value="Buyer">Buyer</option>
           <option value="Seller">Seller</option> 

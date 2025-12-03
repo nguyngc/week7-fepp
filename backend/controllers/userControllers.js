@@ -93,7 +93,8 @@ const loginUser = async (req, res) => {
       user.lastLogin = new Date();
       await user.save();
       const token = generateToken(user._id);
-      res.status(200).json({ email, token });
+
+      res.status(200).json({ user:{email, role: user.role}, token });
     } else {
       res.status(400);
       throw new Error("Invalid credentials");

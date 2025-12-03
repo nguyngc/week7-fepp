@@ -1,10 +1,11 @@
 import { Link, useNavigate } from "react-router-dom";
 
-const Navbar = ({ isAuthenticated, setIsAuthenticated }) => {
+const Navbar = ({ isAuthenticated, setIsAuthenticated, isRole, setIsRole}) => {
   const navigation = useNavigate();
   
   const handleLogout = () => {
     setIsAuthenticated(false);
+    setIsRole(false);
     localStorage.removeItem("user");
     navigation("/");
   }
@@ -18,11 +19,13 @@ const Navbar = ({ isAuthenticated, setIsAuthenticated }) => {
           <>
             <Link to={'/signup'}>Signup</Link>
             <Link to={'/login'}>Login</Link>
+            
           </>
         )}
+        {isRole && (<a href="/add-product">Add Product</a>)}
         {isAuthenticated && (
           <>
-            <a href="/add-product">Add Product</a>
+            
             <a>
               Welcome
             </a>

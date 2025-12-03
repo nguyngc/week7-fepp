@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-export default function useLogin(url) {
+export default function useLogin(url, setIsRole) {
     const [error, setError] = useState(null);
     const [isLoading, setIsLoading] = useState(null);
     const login = async (object) => {
@@ -20,7 +20,10 @@ export default function useLogin(url) {
         }
     
         // localStorage.setItem("token", user.token);
-        localStorage.setItem("user", JSON.stringify(user));
+        const currentUser = JSON.stringify(user);
+        console.log(currentUser );
+        localStorage.setItem("user", currentUser);
+        setIsRole(currentUser.user?.role=== "Admin" || currentUser.user?.role==="Seller"? true:false);
         setIsLoading(false);
       };
 

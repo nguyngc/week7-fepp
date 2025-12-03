@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 
-const ProductPage = ({ isAuthenticated }) => {
+const ProductPage = ({ isRole }) => {
     const navigate = useNavigate();
     const { id } = useParams();
     const [product, setProduct] = useState(null);
@@ -9,7 +9,7 @@ const ProductPage = ({ isAuthenticated }) => {
     const [error, setError] = useState(null);
 
     const deleteProduct = async (id) => {
-        if (!isAuthenticated) return;
+        if (!isRole) return;
 
         const currentUser = JSON.parse(localStorage.getItem("user"));
         try {
@@ -48,7 +48,7 @@ const ProductPage = ({ isAuthenticated }) => {
     }, [id]);
 
     const onDeleteClick = (productId) => {
-        if (!isAuthenticated) return;
+        if (!isRole) return;
 
         const confirm = window.confirm(
             "Are you sure you want to delete this listing?" + productId
@@ -60,7 +60,7 @@ const ProductPage = ({ isAuthenticated }) => {
     };
 
     const onEditClick = (productId) => {
-        if (!isAuthenticated) return;
+        if (!isRole) return;
 
         navigate(`/edit-product/${productId}`)
     };
@@ -82,7 +82,7 @@ const ProductPage = ({ isAuthenticated }) => {
                     <p>Email: {product.supplier.contactEmail}</p>
                     <p>Phone: {product.supplier.contactPhone}</p>
                     <p>Rating: {product.supplier.rating}</p>
-                    {isAuthenticated && (
+                    {isRole && (
                         <>
                             <button onClick={() => onDeleteClick(product.id)}>delete</button>
                             <button onClick={() => onEditClick(product.id)}>edit</button>
