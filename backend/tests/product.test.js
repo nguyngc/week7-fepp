@@ -36,6 +36,8 @@ const products = [
 ];
 
 let token = null;
+let adminToken = null;
+let sellerToken = null;
 
 // Create a user and get a token before all tests
 beforeAll(async () => {
@@ -48,31 +50,66 @@ beforeAll(async () => {
         address: "12345hoa"
     });
     token = result.body.token;
+
+    // user Admin 
+    const adminResult = await api.post("/api/users/signup").send({
+        name: "Admin User",
+        email: "admin@example.com",
+        password: "AdminPass123!",
+        role: "Admin",
+        address: "Admin Street"
+    });
+    adminToken = adminResult.body.token;
+
+    // user Seller 
+    const sellerResult = await api.post("/api/users/signup").send({
+        name: "Seller User",
+        email: "seller@example.com",
+        password: "SellerPass123!",
+        role: "Seller",
+        address: "Seller Street"
+    });
+    sellerToken = sellerResult.body.token;
 });
 
-describe("Protected Product Routes", () => {
+describe("Public Product Routes", () => {
     beforeEach(async () => {
         await Product.deleteMany({});
         await Promise.all([
-            api.post("/api/products").set("Authorization", "Bearer " + token).send(products[0]),
-            api.post("/api/products").set("Authorization", "Bearer " + token).send(products[1]),
+            api.post("/api/products").set("Authorization", "Bearer " + adminToken).send(products[0]),
+            api.post("/api/products").set("Authorization", "Bearer " + adminToken).send(products[1]),
         ]);
     });
 
-    // ---------------- GET ----------------
-    it("should return all products as JSON when GET /api/products is called", async () => {
-        const response = await api
+    // ---------------- UNAUTHENTICATED ----------------
+    it("should return all products GET /api/products without token", async () => {
+        await api
             .get("/api/products")
-            .set("Authorization", "Bearer " + token)
+            .expect(200);
+    });
+
+    it("should return one product by ID", async () => {
+        const product = await Product.findOne();
+        const response = await api
+            .get(`/api/products/${product.id}`)
             .expect(200)
             .expect("Content-Type", /application\/json/);
 
-        expect(response.body).toHaveLength(products.length);
+        expect(response.body.title).toBe(product.title);
+    });
+});
+
+describe("Protected Product Routes - ADMIN ROLE", () => {
+    beforeEach(async () => {
+        await Product.deleteMany({});
+        await Promise.all([
+            api.post("/api/products").set("Authorization", "Bearer " + adminToken).send(products[0]),
+            api.post("/api/products").set("Authorization", "Bearer " + adminToken).send(products[1]),
+        ]);
     });
 
-
     // ---------------- POST ----------------
-    it("should create one product when POST /api/products is called", async () => {
+    it("should create one product when POST /api/products is called by ADMIN", async () => {
         const newProduct = {
             title: "Product 2",
             category: "Clothing",
@@ -88,23 +125,11 @@ describe("Protected Product Routes", () => {
         };
         const response = await api
             .post("/api/products")
-            .set("Authorization", "Bearer " + token)
+            .set("Authorization", "Bearer " + adminToken)
             .send(newProduct)
             .expect(201);
 
         expect(response.body.title).toBe(newProduct.title);
-    });
-
-    // ---------------- GET by ID ----------------
-    it("should return one product by ID", async () => {
-        const product = await Product.findOne();
-        const response = await api
-            .get(`/api/products/${product.id}`)
-            .set("Authorization", "Bearer " + token)
-            .expect(200)
-            .expect("Content-Type", /application\/json/);
-
-        expect(response.body.title).toBe(product.title);
     });
 
     // ---------------- PUT ----------------
@@ -114,7 +139,7 @@ describe("Protected Product Routes", () => {
 
         const response = await api
             .put(`/api/products/${product.id}`)
-            .set("Authorization", "Bearer " + token)
+            .set("Authorization", "Bearer " + adminToken)
             .send(updatedProduct)
             .expect(200)
             .expect("Content-Type", /application\/json/);
@@ -130,7 +155,7 @@ describe("Protected Product Routes", () => {
         const product = await Product.findOne();
         await api
             .delete(`/api/products/${product.id}`)
-            .set("Authorization", "Bearer " + token)
+            .set("Authorization", "Bearer " + adminToken)
             .expect(204);
 
         const productCheck = await Product.findById(product.id);
@@ -138,47 +163,212 @@ describe("Protected Product Routes", () => {
     });
 });
 
-// ---------------- UNAUTHENTICATED ----------------
-it("should return all products GET /api/products without token", async () => {
-    await api
-        .get("/api/products")
-        .expect(200); 
-});
-
-it("should fail POST /api/products without token", async () => {
-    await api
-        .post("/api/products")
-        .send(products[0])
-        .expect(401);
-});
-
-
-// ---------------- ROLE-BASED ----------------
-it("should prevent Buyer from deleting a product", async () => {
-    const product = await Product.findOne({});
-    await api
-        .delete(`/api/products/${product.id}`)
-        .set("Authorization", "Bearer " + token) 
-        .expect(403); 
-});
-
-// test role Admin:
-it("should allow Admin to delete a product", async () => {
-    // user Admin 
-    const adminResult = await api.post("/api/users/signup").send({
-        name: "Admin User",
-        email: "admin@example.com",
-        password: "AdminPass123!",
-        role: "Admin",
-        address: "Admin Street"
+describe("Protected Product Routes - SELLER ROLE", () => {
+    beforeEach(async () => {
+        await Product.deleteMany({});
+        await Promise.all([
+            api.post("/api/products").set("Authorization", "Bearer " + adminToken).send(products[0]),
+            api.post("/api/products").set("Authorization", "Bearer " + adminToken).send(products[1]),
+        ]);
     });
-    const adminToken = adminResult.body.token;
 
-    const product = await Product.findOne({});
-    await api
-        .delete(`/api/products/${product.id}`)
-        .set("Authorization", "Bearer " + adminToken)
-        .expect(204);
+    // ---------------- POST ----------------
+    it("should create one product when POST /api/products is called by SELLER", async () => {
+        const newProduct = {
+            title: "Product 2",
+            category: "Clothing",
+            description: "Product 2 Description",
+            price: 1223,
+            stockQuantity: 10,
+            supplier: {
+                name: "Company 2",
+                contactEmail: "email@outlook.com",
+                contactPhone: "01234566",
+                rating: 3
+            }
+        };
+        const response = await api
+            .post("/api/products")
+            .set("Authorization", "Bearer " + sellerToken)
+            .send(newProduct)
+            .expect(201);
+
+        expect(response.body.title).toBe(newProduct.title);
+    });
+
+    // ---------------- PUT ----------------
+    it("should update one product by ID", async () => {
+        const product = await Product.findOne();
+        const updatedProduct = { title: "Updated product information." };
+
+        const response = await api
+            .put(`/api/products/${product.id}`)
+            .set("Authorization", "Bearer " + sellerToken)
+            .send(updatedProduct)
+            .expect(200)
+            .expect("Content-Type", /application\/json/);
+
+        expect(response.body.title).toBe(updatedProduct.title);
+
+        const updatedProductCheck = await Product.findById(product.id);
+        expect(updatedProductCheck.title).toBe(updatedProduct.title);
+    });
+
+    // ---------------- DELETE ----------------
+    it("should delete one product by ID", async () => {
+        const product = await Product.findOne();
+        await api
+            .delete(`/api/products/${product.id}`)
+            .set("Authorization", "Bearer " + sellerToken)
+            .expect(204);
+
+        const productCheck = await Product.findById(product.id);
+        expect(productCheck).toBeNull();
+    });
+});
+
+describe("Protected Product Routes - BUYER ROLE", () => {
+    beforeEach(async () => {
+        await Product.deleteMany({});
+        await Promise.all([
+            api.post("/api/products").set("Authorization", "Bearer " + adminToken).send(products[0]),
+            api.post("/api/products").set("Authorization", "Bearer " + adminToken).send(products[1]),
+        ]);
+    });
+
+    // ---------------- POST ----------------
+    it("should not create one product when POST /api/products is called by BUYER", async () => {
+        const newProduct = {
+            title: "Product 2",
+            category: "Clothing",
+            description: "Product 2 Description",
+            price: 1223,
+            stockQuantity: 10,
+            supplier: {
+                name: "Company 2",
+                contactEmail: "email@outlook.com",
+                contactPhone: "01234566",
+                rating: 3
+            }
+        };
+        await api
+            .post("/api/products")
+            .set("Authorization", "Bearer " + token)
+            .send(newProduct)
+            .expect(403);
+    });
+
+    // ---------------- PUT ----------------
+    it("should not update one product by ID", async () => {
+        const product = await Product.findOne();
+        const updatedProduct = { title: "Updated product information." };
+
+        await api
+            .put(`/api/products/${product.id}`)
+            .set("Authorization", "Bearer " + token)
+            .send(updatedProduct)
+            .expect(403);
+    });
+
+    // ---------------- DELETE ----------------
+    it("should not delete one product by ID", async () => {
+        const product = await Product.findOne();
+        await api
+            .delete(`/api/products/${product.id}`)
+            .set("Authorization", "Bearer " + token)
+            .expect(403);
+    });
+});
+
+describe("Protected Product Routes - NOT LOGGIN OR INVALID TOKEN", () => {
+    beforeEach(async () => {
+        await Product.deleteMany({});
+        await Promise.all([
+            api.post("/api/products").set("Authorization", "Bearer " + adminToken).send(products[0]),
+            api.post("/api/products").set("Authorization", "Bearer " + adminToken).send(products[1]),
+        ]);
+    });
+
+    // ---------------- POST ----------------
+    it("should not create one product when POST /api/products is called without Token", async () => {
+        const newProduct = {
+            title: "Product 2",
+            category: "Clothing",
+            description: "Product 2 Description",
+            price: 1223,
+            stockQuantity: 10,
+            supplier: {
+                name: "Company 2",
+                contactEmail: "email@outlook.com",
+                contactPhone: "01234566",
+                rating: 3
+            }
+        };
+        await api
+            .post("/api/products")
+            .send(newProduct)
+            .expect(401);
+    });
+
+    it("should not create one product when POST /api/products is called with invalid token", async () => {
+        const newProduct = {
+            title: "Product 2",
+            category: "Clothing",
+            description: "Product 2 Description",
+            price: 1223,
+            stockQuantity: 10,
+            supplier: {
+                name: "Company 2",
+                contactEmail: "email@outlook.com",
+                contactPhone: "01234566",
+                rating: 3
+            }
+        };
+        await api
+            .post("/api/products")
+            .set("Authorization", "Bearer 414109715")
+            .send(newProduct)
+            .expect(401);
+    });
+
+    // ---------------- PUT ----------------
+    it("should not update one product by ID without token", async () => {
+        const product = await Product.findOne();
+        const updatedProduct = { title: "Updated product information." };
+        console.log(product);
+
+        await api
+            .put(`/api/products/${product.id}`)
+            .send(updatedProduct)
+            .expect(401);
+    });
+
+    it("should not update one product by ID with invalid token", async () => {
+        const product = await Product.findOne();
+        const updatedProduct = { title: "Updated product information." };
+
+        await api
+            .put(`/api/products/${product.id}`)
+            .set("Authorization", "Bearer 414109715")
+            .send(updatedProduct)
+            .expect(401);
+    });
+
+    // ---------------- DELETE ----------------
+    it("should not delete one product by ID without token", async () => {
+        const product = await Product.findOne();
+        await api
+            .delete(`/api/products/${product.id}`)
+            .expect(401);
+    });
+
+    it("should not delete one product by ID with invalid token", async () => {
+        const product = await Product.findOne();
+        await api
+            .delete(`/api/products/${product.id}`)
+            .set("Authorization", "Bearer 414109715")
+            .expect(401);
+    });
 });
 
 // Close DB connection once after all tests
