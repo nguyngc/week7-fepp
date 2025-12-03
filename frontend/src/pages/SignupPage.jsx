@@ -7,11 +7,13 @@ const Signup = ({ setIsAuthenticated }) => {
   const name = useField("text");
   const email = useField("email");
   const password = useField("password");
-  const phoneNumber = useField("text");
-  const gender = useField("text");
-  const dob = useField("date");
-  const membership = useField("text");
-  
+  // const phoneNumber = useField("text");
+  // const gender = useField("text");
+  // const dob = useField("date");
+  // const membership = useField("text");
+  const role = useField("text");
+  const address = useField("text");
+   
 
   const { signup, error } = useSignup("/api/users/signup");
 
@@ -21,12 +23,12 @@ const Signup = ({ setIsAuthenticated }) => {
       name: name.value,
       email: email.value,
       password: password.value,
-      name: name.value,
-      phone_number: phoneNumber.value,
-      gender: gender.value,
-      date_of_birth: dob.value,
-      membership_status: membership.value
-      
+      // phone_number: phoneNumber.value,
+      // gender: gender.value,
+      // date_of_birth: dob.value,
+      // membership_status: membership.value,
+      role: role.value,
+      address: address.value
     });
     if (!error) {
       console.log("success");
@@ -45,14 +47,23 @@ const Signup = ({ setIsAuthenticated }) => {
         <input {...email} />
         <label>Password:</label>
         <input {...password} />
-        <label>Phone Number:</label>
+        {/* <label>Phone Number:</label>
         <input {...phoneNumber} />
         <label>Gender:</label>
         <input {...gender} />
         <label>Day of Birth:</label>
         <input {...dob} />
         <label>Membership Status:</label>
-        <input {...membership} />
+        <input {...membership} /> */}
+        <label>Role:</label>
+        <select {...role}>
+          <option value="Admin">Admin</option>
+          <option value="Buyer">Buyer</option>
+          <option value="Seller">Seller</option> 
+        </select>
+        
+        <label>Address:</label>
+        <input {...address} />
         
         <button>Sign up</button>
       </form>
