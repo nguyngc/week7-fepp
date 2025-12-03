@@ -23,7 +23,7 @@ const signupUser = async (req, res) => {
     // membership_status,
     role,
     address
-    
+
   } = req.body;
   try {
     if (
@@ -35,8 +35,8 @@ const signupUser = async (req, res) => {
       // !date_of_birth ||
       // !membership_status ||
       !role ||
-      !address 
-      
+      !address
+
     ) {
       res.status(400);
       throw new Error("Please add all fields");
@@ -69,8 +69,8 @@ const signupUser = async (req, res) => {
 
     if (user) {
       // console.log(user._id);
-     const token = generateToken(user._id);
-      res.status(201).json({ email, token });
+      const token = generateToken(user._id);
+      res.status(201).json({ user: { email, role }, token });
     } else {
       res.status(400);
       throw new Error("Invalid user data");
@@ -94,7 +94,7 @@ const loginUser = async (req, res) => {
       await user.save();
       const token = generateToken(user._id);
 
-      res.status(200).json({ user:{email, role: user.role}, token });
+      res.status(200).json({ user: { email, role: user.role }, token });
     } else {
       res.status(400);
       throw new Error("Invalid credentials");

@@ -1,31 +1,29 @@
 import { useState } from "react";
 
 export default function useLogin(url, setIsRole) {
-    const [error, setError] = useState(null);
-    const [isLoading, setIsLoading] = useState(null);
-    const login = async (object) => {
-        setIsLoading(true);
-        setError(null);
-        const response = await fetch(url, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(object),
-        });
-        const user = await response.json();
-    
-        if (!response.ok) {
-          setError(user.error);
-          setIsLoading(false);
-          return error;
-        }
-    
-        // localStorage.setItem("token", user.token);
-        const currentUser = JSON.stringify(user);
-        console.log(currentUser );
-        localStorage.setItem("user", currentUser);
-        setIsRole(currentUser.user?.role=== "Admin" || currentUser.user?.role==="Seller"? true:false);
-        setIsLoading(false);
-      };
+  const [error, setError] = useState(null);
+  const [isLoading, setIsLoading] = useState(null);
+  const login = async (object) => {
+    setIsLoading(true);
+    setError(null);
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(object),
+    });
+    const user = await response.json();
 
-      return { login, isLoading, error };
+    if (!response.ok) {
+      setError(user.error);
+      setIsLoading(false);
+      return error;
+    }
+
+    // localStorage.setItem("token", user.token);
+    localStorage.setItem("user", JSON.stringify(user));
+    setIsRole(user.user?.role === "Admin" || user.user?.role === "Seller" ? true : false);
+    setIsLoading(false);
+  };
+
+  return { login, isLoading, error };
 }
