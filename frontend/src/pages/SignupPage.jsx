@@ -9,9 +9,9 @@ const Signup = ({ setIsAuthenticated }) => {
   const password = useField("password");
   const phoneNumber = useField("text");
   const gender = useField("text");
-  const addressStreet = useField("text");
-  const city = useField("text");
-  const zipcode = useField("text");
+  const dob = useField("date");
+  const membership = useField("text");
+  
 
   const { signup, error } = useSignup("/api/users/signup");
 
@@ -24,11 +24,9 @@ const Signup = ({ setIsAuthenticated }) => {
       name: name.value,
       phone_number: phoneNumber.value,
       gender: gender.value,
-      address:{
-        street: addressStreet.value,
-        city: city.value,
-        zipCode: zipcode.value
-      }
+      date_of_birth: dob.value,
+      membership_status: membership.value
+      
     });
     if (!error) {
       console.log("success");
@@ -51,12 +49,11 @@ const Signup = ({ setIsAuthenticated }) => {
         <input {...phoneNumber} />
         <label>Gender:</label>
         <input {...gender} />
-        <label>Address:</label>
-        <input {...addressStreet} />
-        <label>City:</label>
-        <input {...city} />
-        <label>Zipcode:</label>
-        <input {...zipcode} />
+        <label>Day of Birth:</label>
+        <input {...dob} />
+        <label>Membership Status:</label>
+        <input {...membership} />
+        
         <button>Sign up</button>
       </form>
     </div>
